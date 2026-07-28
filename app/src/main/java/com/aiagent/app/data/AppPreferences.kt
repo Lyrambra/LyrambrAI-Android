@@ -15,6 +15,7 @@ class AppPreferences(private val context: Context) {
     private object Keys {
         val API_KEY = stringPreferencesKey("api_key")
         val API_URL = stringPreferencesKey("api_url")
+        val MODEL_NAME = stringPreferencesKey("model_name")
         val IS_FIRST_LAUNCH = booleanPreferencesKey("is_first_launch")
         val SHOW_THINKING = booleanPreferencesKey("show_thinking")
         val SYSTEM_PROMPT = stringPreferencesKey("system_prompt")
@@ -25,6 +26,9 @@ class AppPreferences(private val context: Context) {
 
     val apiUrl: Flow<String> = context.dataStore.data
         .map { preferences -> preferences[Keys.API_URL] ?: "api.deepseek.com" }
+
+    val modelName: Flow<String> = context.dataStore.data
+        .map { preferences -> preferences[Keys.MODEL_NAME] ?: "deepseek-chat" }
 
     val isFirstLaunch: Flow<Boolean> = context.dataStore.data
         .map { preferences -> preferences[Keys.IS_FIRST_LAUNCH] ?: true }
@@ -46,6 +50,12 @@ class AppPreferences(private val context: Context) {
     suspend fun setApiUrl(apiUrl: String) {
         context.dataStore.edit { preferences ->
             preferences[Keys.API_URL] = apiUrl
+        }
+    }
+
+    suspend fun setModelName(modelName: String) {
+        context.dataStore.edit { preferences ->
+            preferences[Keys.MODEL_NAME] = modelName
         }
     }
 

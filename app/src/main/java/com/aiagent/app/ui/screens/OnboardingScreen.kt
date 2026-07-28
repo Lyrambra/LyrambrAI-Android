@@ -25,6 +25,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.SmartToy
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -68,6 +69,7 @@ fun OnboardingScreen(
     val context = LocalContext.current
     var apiKey by remember { mutableStateOf("") }
     var apiUrl by remember { mutableStateOf("api.deepseek.com") }
+    var modelName by remember { mutableStateOf("deepseek-chat") }
     var showKey by remember { mutableStateOf(false) }
     var showDialog by remember { mutableStateOf(false) }
     var dialogType by remember { mutableStateOf(DialogType.NONE) }
@@ -75,12 +77,14 @@ fun OnboardingScreen(
 
     val savedApiKey by viewModel.apiKey.collectAsState(initial = "")
     val savedApiUrl by viewModel.apiUrl.collectAsState(initial = "api.deepseek.com")
+    val savedModelName by viewModel.modelName.collectAsState(initial = "deepseek-chat")
 
     LaunchedEffect(Unit) {
         if (savedApiKey.isNotBlank()) {
             apiKey = savedApiKey
         }
         apiUrl = savedApiUrl
+        modelName = savedModelName
     }
 
     Box(
@@ -201,6 +205,27 @@ fun OnboardingScreen(
                         placeholder = { Text("api.deepseek.com") }
                     )
 
+                    OutlinedTextField(
+                        value = modelName,
+                        onValueChange = { modelName = it },
+                        label = { Text("模型名称") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(ShapeTokens.CornerMedium),
+                        colors = TextFieldDefaults.colors(
+                            focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+                            unfocusedIndicatorColor = MaterialTheme.colorScheme.outlineVariant,
+                        ),
+                        singleLine = true,
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.SmartToy,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        },
+                        placeholder = { Text("deepseek-chat") }
+                    )
+
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.End
@@ -218,6 +243,7 @@ fun OnboardingScreen(
                 onClick = {
                     viewModel.saveApiKey(apiKey)
                     viewModel.saveApiUrl(apiUrl)
+                    viewModel.saveModelName(modelName)
                     viewModel.completeFirstLaunch()
                     onComplete()
                 },

@@ -5,6 +5,8 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.aiagent.app.data.AppPreferences
 import com.aiagent.app.data.ChatMessage
+import com.aiagent.app.network.ChatMessageData
+import com.aiagent.app.network.OpenAiApiClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -13,6 +15,7 @@ import kotlinx.coroutines.launch
 
 class ChatViewModel(application: Application) : AndroidViewModel(application) {
     private val preferences = AppPreferences(application)
+    private val apiClient = OpenAiApiClient()
 
     private val _messages = MutableStateFlow<List<ChatMessage>>(emptyList())
     val messages: StateFlow<List<ChatMessage>> = _messages.asStateFlow()
@@ -43,6 +46,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             val systemPrompt = preferences.systemPrompt.first()
             val apiKey = preferences.apiKey.first()
             val apiUrl = preferences.apiUrl.first()
+            val modelName = preferences.modelName.first()
 
             if (apiKey.isBlank()) {
                 val errorMessage = ChatMessage(
@@ -54,41 +58,70 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                 return@launch
             }
 
+            // 创建一个占位的助手消息，用于流式更新
+            val assistantMessageId = System.currentTimeMillis().toString()
+            val assistantMessage = ChatMessage(
+                id = assistantMessageId,
+                role = "assistant",
+                content = "",
+                thinkingContent = null
+            )
+            _messages.value = _messages.value + assistantMessage
+
             try {
-                val response = callApi(apiKey, apiUrl, systemPrompt, _messages.value)
-                val assistantMessage = ChatMessage(
-                    role = "assistant",
-                    content = response.content,
-                    thinkingContent = response.thinkingContent
-                )
-                _messages.value = _messages.value + assistantMessage
+                val messageHistory = _messages.value
+                    .filter { it.role == "user" || it.role == "assistant" }
+                    .dropLast(1) // 移除占位消息
+                    .map { ChatMessageData(role = it.role, content = it.content) }
+
+                val contentBuilder = StringBuilder()
+                val thinkingBuilder = StringBuilder()
+
+                apiClient.streamChatCompletion(
+                    apiKey = apiKey,
+                    apiUrl = apiUrl,
+                    model = modelName,
+                    messages = messageHistory,
+                    systemPrompt = systemPrompt
+                ).collect { chunk ->
+                    if (chunk.content.isNotEmpty()) {
+                        contentBuilder.append(chunk.content)
+                    }
+                    if (chunk.thinkingContent != null) {
+                        thinkingBuilder.append(chunk.thinkingContent)
+                    }
+
+                    // 实时更新占位消息
+                    _messages.value = _messages.value.map { msg ->
+                        if (msg.id == assistantMessageId) {
+                            msg.copy(
+                                content = contentBuilder.toString(),
+                                thinkingContent = if (thinkingBuilder.isNotEmpty()) thinkingBuilder.toString() else null
+                            )
+                        } else {
+                            msg
+                        }
+                    }
+                }
             } catch (e: Exception) {
-                val errorMessage = ChatMessage(
-                    role = "assistant",
-                    content = "请求失败: ${e.message}"
-                )
-                _messages.value = _messages.value + errorMessage
+                // 如果出错，更新占位消息为错误信息
+                _messages.value = _messages.value.map { msg ->
+                    if (msg.id == assistantMessageId) {
+                        msg.copy(
+                            content = if (msg.content.isBlank()) {
+                                "请求失败: ${e.message}"
+                            } else {
+                                msg.content + "\n\n[请求中断: ${e.message}]"
+                            }
+                        )
+                    } else {
+                        msg
+                    }
+                }
             }
 
             _isLoading.value = false
         }
-    }
-
-    private data class ApiResponse(
-        val content: String,
-        val thinkingContent: String?
-    )
-
-    private suspend fun callApi(
-        apiKey: String,
-        apiUrl: String,
-        systemPrompt: String,
-        messages: List<ChatMessage>
-    ): ApiResponse {
-        return ApiResponse(
-            content = "这是一个演示回复。请配置有效的API密钥后使用。\n\n```kotlin\nfun hello() {\n    println(\"Hello, World!\")\n}\n```\n\n| 列1 | 列2 | 列3 |\n|-----|-----|-----|\n| A | B | C |\n| D | E | F |",
-            thinkingContent = "这是思考过程的示例内容。模型正在分析用户的问题并生成回复..."
-        )
     }
 
     fun toggleShowThinking() {

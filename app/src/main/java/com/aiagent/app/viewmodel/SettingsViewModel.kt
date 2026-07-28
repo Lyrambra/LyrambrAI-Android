@@ -12,6 +12,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     val apiKey: Flow<String> = preferences.apiKey
     val apiUrl: Flow<String> = preferences.apiUrl
+    val modelName: Flow<String> = preferences.modelName
     val isFirstLaunch: Flow<Boolean> = preferences.isFirstLaunch
     val showThinking: Flow<Boolean> = preferences.showThinking
     val systemPrompt: Flow<String> = preferences.systemPrompt
@@ -25,6 +26,12 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     fun saveApiUrl(url: String) {
         viewModelScope.launch {
             preferences.setApiUrl(url)
+        }
+    }
+
+    fun saveModelName(model: String) {
+        viewModelScope.launch {
+            preferences.setModelName(model)
         }
     }
 

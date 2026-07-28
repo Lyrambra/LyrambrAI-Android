@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.SmartToy
 import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Card
@@ -53,16 +54,19 @@ fun SettingsScreen(
 ) {
     val apiKey by viewModel.apiKey.collectAsState(initial = "")
     val apiUrl by viewModel.apiUrl.collectAsState(initial = "")
+    val modelName by viewModel.modelName.collectAsState(initial = "")
     val showThinking by viewModel.showThinking.collectAsState(initial = false)
     val systemPrompt by viewModel.systemPrompt.collectAsState(initial = "")
 
     var apiKeyText by remember { mutableStateOf("") }
     var apiUrlText by remember { mutableStateOf("") }
+    var modelNameText by remember { mutableStateOf("") }
     var systemPromptText by remember { mutableStateOf("") }
 
-    LaunchedEffect(apiKey, apiUrl, systemPrompt) {
+    LaunchedEffect(apiKey, apiUrl, modelName, systemPrompt) {
         apiKeyText = apiKey
         apiUrlText = apiUrl
+        modelNameText = modelName
         systemPromptText = systemPrompt
     }
 
@@ -157,6 +161,29 @@ fun SettingsScreen(
                         leadingIcon = {
                             Icon(
                                 Icons.Default.Language,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    )
+
+                    OutlinedTextField(
+                        value = modelNameText,
+                        onValueChange = {
+                            modelNameText = it
+                            viewModel.saveModelName(it)
+                        },
+                        label = { Text("模型名称") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(ShapeTokens.CornerMedium),
+                        colors = TextFieldDefaults.colors(
+                            focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+                            unfocusedIndicatorColor = MaterialTheme.colorScheme.outlineVariant,
+                        ),
+                        singleLine = true,
+                        leadingIcon = {
+                            Icon(
+                                Icons.Default.SmartToy,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )

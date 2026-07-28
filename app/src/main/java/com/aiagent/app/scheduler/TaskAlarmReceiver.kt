@@ -8,9 +8,13 @@ import android.content.Context
 import android.content.Intent
 import androidx.core.app.NotificationCompat
 import com.aiagent.app.MainActivity
-import com.aiagent.app.R
+import com.aiagent.app.data.AppPreferences
+import com.aiagent.app.data.RepeatInterval
+import com.aiagent.app.network.ChatMessageData
+import com.aiagent.app.network.OpenAiApiClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class TaskAlarmReceiver : BroadcastReceiver() {
@@ -18,28 +22,60 @@ class TaskAlarmReceiver : BroadcastReceiver() {
         val taskId = intent.getLongExtra("task_id", -1)
         if (taskId == -1L) return
 
+        // 使用 goAsync 让 BroadcastReceiver 在协程执行期间保持存活
+        val pendingResult = goAsync()
+
         CoroutineScope(Dispatchers.IO).launch {
-            val taskScheduler = TaskScheduler(context)
-            val task = taskScheduler.getTaskById(taskId) ?: return@launch
+            try {
+                val taskScheduler = TaskScheduler(context)
+                val task = taskScheduler.getTaskById(taskId) ?: return@launch
 
-            showNotification(context, task.name, task.prompt)
+                // 读取 API 配置并调用 API
+                val preferences = AppPreferences(context)
+                val apiKey = preferences.apiKey.first()
+                val apiUrl = preferences.apiUrl.first()
+                val modelName = preferences.modelName.first()
+                val systemPrompt = preferences.systemPrompt.first()
 
-            when (task.repeatInterval) {
-                com.aiagent.app.data.RepeatInterval.DAILY -> {
-                    val nextTime = task.timeInMillis + 24 * 60 * 60 * 1000
-                    taskScheduler.updateTask(task.copy(timeInMillis = nextTime))
+                var resultText = task.prompt
+                if (apiKey.isNotBlank() && apiUrl.isNotBlank()) {
+                    try {
+                        val apiClient = OpenAiApiClient()
+                        val result = apiClient.chatCompletion(
+                            apiKey = apiKey,
+                            apiUrl = apiUrl,
+                            model = modelName,
+                            messages = listOf(ChatMessageData(role = "user", content = task.prompt)),
+                            systemPrompt = systemPrompt
+                        )
+                        resultText = result.content
+                    } catch (e: Exception) {
+                        resultText = "API调用失败: ${e.message}"
+                    }
                 }
-                com.aiagent.app.data.RepeatInterval.WEEKLY -> {
-                    val nextTime = task.timeInMillis + 7 * 24 * 60 * 60 * 1000
-                    taskScheduler.updateTask(task.copy(timeInMillis = nextTime))
+
+                showNotification(context, task.name, resultText)
+
+                // 调度下一次触发
+                when (task.repeatInterval) {
+                    RepeatInterval.DAILY -> {
+                        val nextTime = task.timeInMillis + 24 * 60 * 60 * 1000
+                        taskScheduler.updateTask(task.copy(timeInMillis = nextTime))
+                    }
+                    RepeatInterval.WEEKLY -> {
+                        val nextTime = task.timeInMillis + 7 * 24 * 60 * 60 * 1000
+                        taskScheduler.updateTask(task.copy(timeInMillis = nextTime))
+                    }
+                    RepeatInterval.MONTHLY -> {
+                        val nextTime = task.timeInMillis + 30 * 24 * 60 * 60 * 1000
+                        taskScheduler.updateTask(task.copy(timeInMillis = nextTime))
+                    }
+                    RepeatInterval.NONE -> {
+                        taskScheduler.updateTask(task.copy(isEnabled = false))
+                    }
                 }
-                com.aiagent.app.data.RepeatInterval.MONTHLY -> {
-                    val nextTime = task.timeInMillis + 30 * 24 * 60 * 60 * 1000
-                    taskScheduler.updateTask(task.copy(timeInMillis = nextTime))
-                }
-                com.aiagent.app.data.RepeatInterval.NONE -> {
-                    taskScheduler.updateTask(task.copy(isEnabled = false))
-                }
+            } finally {
+                pendingResult.finish()
             }
         }
     }
