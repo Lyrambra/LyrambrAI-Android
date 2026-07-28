@@ -1,11 +1,7 @@
 package com.aiagent.app.data
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
-
-@Entity(tableName = "scheduled_tasks")
 data class ScheduledTask(
-    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val id: Long = 0,
     val name: String,
     val prompt: String,
     val timeInMillis: Long,

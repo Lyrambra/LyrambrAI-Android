@@ -20,6 +20,12 @@ android {
         }
     }
 
+    signingConfigs {
+        getByName("debug") {
+            // 使用默认 debug 签名
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -27,6 +33,8 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            // 使用 debug 签名以便 release APK 可直接安装
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {

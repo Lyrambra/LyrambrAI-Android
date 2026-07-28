@@ -1,9 +1,11 @@
 package com.aiagent.app.ui.navigation
 
+import android.app.Activity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -26,6 +28,7 @@ fun AppNavigation() {
     val navController = rememberNavController()
     val settingsViewModel: SettingsViewModel = viewModel()
     val isFirstLaunch by settingsViewModel.isFirstLaunch.collectAsState(initial = true)
+    val context = LocalContext.current
 
     LaunchedEffect(isFirstLaunch) {
         if (isFirstLaunch) {
@@ -48,7 +51,7 @@ fun AppNavigation() {
                     }
                 },
                 onExit = {
-                    (androidx.compose.ui.platform.LocalContext.current as? android.app.Activity)?.finish()
+                    (context as? Activity)?.finish()
                 }
             )
         }
