@@ -1,0 +1,30 @@
+<resources>
+    <string name="app_name">AI Agent</string>
+    <string name="settings">设置</string>
+    <string name="chat">对话</string>
+    <string name="tasks">定时任务</string>
+    <string name="api_key">API密钥</string>
+    <string name="api_url">API地址</string>
+    <string name="save">保存</string>
+    <string name="cancel">取消</string>
+    <string name="i_dont_have_key">我没有该格式密钥</string>
+    <string name="later">稍后再说</string>
+    <string name="i_dont_have_api_key">我没有密钥</string>
+    <string name="no_key_message">如果你没有通用的OpenAI格式密钥，你可以选择稍后在环境变量中配置</string>
+    <string name="go_to_settings">进入环境变量配置</string>
+    <string name="no_api_warning">该软件为空壳软件，如果你没有一个API，那么该软件将无法使用</string>
+    <string name="exit_app">退出软件</string>
+    <string name="thinking">思考过程</string>
+    <string name="show_thinking">显示思考过程</string>
+    <string name="system_prompt">系统提示词</string>
+    <string name="custom_prompt">自定义提示词</string>
+    <string name="add_task">添加任务</string>
+    <string name="edit_task">编辑任务</string>
+    <string name="task_name">任务名称</string>
+    <string name="task_prompt">任务提示词</string>
+    <string name="task_time">执行时间</string>
+    <string name="task_repeat">重复</string>
+    <string name="delete">删除</string>
+    <string name="input_message">输入消息...</string>
+    <string name="send">发送</string>
+</resources>
