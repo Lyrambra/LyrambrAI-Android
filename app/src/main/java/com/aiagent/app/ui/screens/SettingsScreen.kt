@@ -193,7 +193,7 @@ fun SettingsScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     },
-                    leadingIcon = {
+                    leadingContent = {
                         Icon(
                             Icons.Outlined.Lightbulb,
                             contentDescription = null,
