@@ -327,12 +327,12 @@ fun AddTaskScreen(
 }
 
 private fun formatDate(timeInMillis: Long): String {
-    val calendar = Calendar.getInstance().apply { timeInMillis = timeInMillis }
+    val calendar = Calendar.getInstance().apply { this.timeInMillis = timeInMillis }
     return "${calendar.get(Calendar.YEAR)}-${String.format("%02d", calendar.get(Calendar.MONTH) + 1)}-${String.format("%02d", calendar.get(Calendar.DAY_OF_MONTH))}"
 }
 
 private fun formatTimeOfDay(timeInMillis: Long): String {
-    val calendar = Calendar.getInstance().apply { timeInMillis = timeInMillis }
+    val calendar = Calendar.getInstance().apply { this.timeInMillis = timeInMillis }
     return "${String.format("%02d", calendar.get(Calendar.HOUR_OF_DAY))}:${String.format("%02d", calendar.get(Calendar.MINUTE))}"
 }
 

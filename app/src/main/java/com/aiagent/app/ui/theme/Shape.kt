@@ -4,7 +4,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Shapes
 import androidx.compose.ui.unit.dp
 
-val ShapeTokens = object {
+object ShapeTokens {
     val CornerExtraSmall = 4.dp
     val CornerSmall = 8.dp
     val CornerMedium = 12.dp

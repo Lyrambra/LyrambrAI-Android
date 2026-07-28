@@ -1,6 +1,5 @@
 package com.aiagent.app.ui.animation
 
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.TweenSpec
@@ -8,7 +7,6 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -111,6 +109,7 @@ fun Modifier.swipeAction(
     }
 )
 
+@Composable
 fun Modifier.animateShapeChange(
     shapeType: ShapeMorphType
 ): Modifier = this.then(
