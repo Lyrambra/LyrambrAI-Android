@@ -90,11 +90,12 @@ class OpenAiApiClient {
             val reader = BufferedReader(InputStreamReader(body.byteStream(), Charsets.UTF_8))
             var line: String?
             while (reader.readLine().also { line = it } != null) {
-                if (line.isNullOrBlank()) continue
+                val currentLine = line ?: continue
+                if (currentLine.isBlank()) continue
                 // 兼容 "data:" 和 "data: " 两种格式
-                if (!line.startsWith("data:")) continue
+                if (!currentLine.startsWith("data:")) continue
 
-                val data = line.removePrefix("data:").trim()
+                val data = currentLine.removePrefix("data:").trim()
                 if (data == "[DONE]") {
                     emit(StreamChunk(content = "", thinkingContent = null, isDone = true))
                     break
